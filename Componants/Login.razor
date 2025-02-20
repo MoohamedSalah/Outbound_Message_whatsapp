@@ -4,6 +4,7 @@
 @using System.Net.Http.Json
 @using Models
 @inject NavigationManager Navigation
+@inject IConfiguration Configuration
 
 
 @inject HttpClient Http
@@ -204,12 +205,13 @@ else
 
 @code {
     private int? SelectedValue { get; set; } = 0;
-    private TokenRequestModel TokenRequestModel { get; set; } = new TokenRequestModel{
-        ClientId="",
-            
-            ClientSecret = ""
-        
-    };
+    private TokenRequestModel TokenRequestModel { get; set; } = new TokenRequestModel();
+
+    protected override void OnInitialized()
+    {
+        TokenRequestModel.ClientId = Configuration["TokenRequest:ClientId"];
+        TokenRequestModel.ClientSecret = Configuration["TokenRequest:ClientSecret"];
+    }
 
     private List<VMData> Libraries = new();
     private List<ResponseData> Responses = new();

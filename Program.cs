@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Outbound_Message_whatsapp.Controllers;
 using Outbound_Message_whatsapp.Data;
+using Outbound_Message_whatsapp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,11 @@ builder.Services.AddServerSideBlazor()
     .AddCircuitOptions(options => { options.DetailedErrors = true; });
 // Blazor Server support
 builder.Services.AddHttpClient();
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:44313/") });
+builder.Services.Configure<TokenRequestModel>(builder.Configuration.GetSection("TokenRequest"));
+
+var baseUrl = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl");
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.PropertyNamingPolicy = null;
