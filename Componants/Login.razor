@@ -1,0 +1,389 @@
+﻿@page "/blazor-login"
+@namespace Outbound_Message_whatsapp.Pages
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Json
+@using Models
+@inject NavigationManager Navigation
+
+
+@inject HttpClient Http
+@code {
+    private string ClientId { get; set; } 
+    private string ClientSecret { get; set; } 
+    private string Token { get; set; }
+    private string ErrorMessage { get; set; }
+    }
+
+
+    
+<EditForm Model="@TokenRequestModel" OnValidSubmit="@GetToken">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label title="clientId" for="clientId">Client ID</label> <a href="https://help.mypurecloud.com/articles/create-an-oauth-client/"
+                                                                    target="_blank"
+                                                                    class="btn btn-outline-info p-1">
+            ❓
+        </a>
+        <InputText id="clientId" @bind-Value="@TokenRequestModel.ClientId" class="form-control"  />
+        <ValidationMessage For="@(() => TokenRequestModel.ClientId)" class="alert alert-danger" />
+    </div>
+
+    <div class="mb-3">
+        <label for="clientSecret">Client Secret</label> <a href="https://help.mypurecloud.com/articles/create-an-oauth-client/"
+                                                           target="_blank"
+                                                           class="btn btn-outline-info p-1">
+            ❓
+        </a>
+        <InputText id="clientSecret" @bind-Value="@TokenRequestModel.ClientSecret" type="password" class="form-control" />
+        <ValidationMessage For="@(() => TokenRequestModel.ClientSecret)" class="alert alert-danger" />
+
+    </div>
+
+    <button type="submit" class="btn btn-primary">Get Data</button>
+</EditForm>
+@* 
+@if (!string.IsNullOrEmpty(Token))
+{
+    <h4>Access Token:</h4>
+    <textarea class="form-control" rows="5">@Token</textarea>
+} *@
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+
+<div class="d-flex align-items-center">
+    <h3 class="mb-0 me-2">Select a WhatsApp Integration</h3>
+    <a href="https://help.mypurecloud.com/articles/gcnow-set-up-a-whatsapp-integration/"
+       target="_blank"
+       class="btn btn-outline-info p-1">
+        ❓
+    </a>
+</div>
+
+
+@if (Integrations.Count == 0)
+{
+    <p>Click Get Data...</p>
+}
+else
+{
+    <InputSelect @bind-Value="SelectedIntegrationId" class="form-control">
+        @foreach (var integration in Integrations)
+        {
+            <option value="@integration.Id">@integration.Name</option>
+        }
+    </InputSelect>
+
+    <p class="mt-3">
+        fromAddressstring Integration ID: <strong>@SelectedIntegrationId</strong>
+    </p>
+
+}
+
+
+
+      <div class="d-flex align-items-center">
+        <h3 class="mb-0 me-2">Select a Response Library</h3>
+        <a href="https://help.mypurecloud.com/articles/create-libraries/"
+           target="_blank"
+           class="btn btn-outline-info p-1">
+            ❓
+        </a>
+    </div>
+@if (Libraries.Count == 0)
+{
+    <p>Click Get Data...</p>
+}
+else
+{
+    <InputSelect @bind-Value="SelectedLibraryId"  class="form-control">
+    @foreach (var library in Libraries)
+    {
+        <option value="@library.Id">@library.Name</option>
+    }
+</InputSelect>
+
+<p class="mt-3">
+    Selected Library ID: <strong>@SelectedLibraryId</strong>
+</p>
+}
+
+@if (!string.IsNullOrEmpty(SelectedLibraryId))
+{
+    
+    <div class="d-flex align-items-center">
+        <h3 class="mb-0 me-2">Select a Response</h3>
+        <a href="https://help.mypurecloud.com/articles/create-responses/"
+           target="_blank"
+           class="btn btn-outline-info p-1">
+            ❓
+        </a>
+    </div>
+  
+    @if (Responses.Count == 0)
+    {
+        <p>Loading responses...</p>
+    }
+    else
+    {
+        <InputSelect @bind-Value="SelectedResponseId" class="form-control">
+            @foreach (var response in Responses)
+            {
+                <option value="@response.Id">@response.Name</option>
+            }
+       </InputSelect>
+
+        <p class="mt-3">
+            Selected Response ID: <strong>@SelectedResponseId</strong>
+        </p>
+    }
+}
+
+<h3>Select Messenger Type</h3>
+
+<InputSelect @bind-Value="SelectedMessengerType" disabled="disabled" class="form-control">
+    <option value="sms">SMS</option>
+    <option value="whatsapp">WhatsApp</option>
+    <option value="open">Open</option>
+</InputSelect>
+
+<p class="mt-3">
+    Selected Messenger Type: <strong>@SelectedMessengerType</strong>
+</p>
+
+<h3>Select an Option use Existing Active Conversation:</h3>
+<h5>Use an existing active conversation to send the agentless outbound message. Set this parameter to 'true' to use active conversation. Default value: false</h5>
+
+<InputRadioGroup @bind-Value="SelectedValue">
+    <div class="form-check">
+        <InputRadio class="form-check-input" Value="1" />
+        <label class="form-check-label">True</label>
+    </div>
+
+    <div class="form-check">
+        <InputRadio class="form-check-input" Value="2" />
+        <label class="form-check-label">False</label>
+    </div>
+
+    <div class="form-check">
+        <InputRadio class="form-check-input" Value="0" />
+        <label class="form-check-label">Null</label>
+    </div>
+</InputRadioGroup>
+
+<p class="mt-3">
+    Selected Value: <strong>@(SelectedValue?.ToString() ?? "Null")</strong>
+</p>
+
+<EditForm Model="@MessageRequestModel" OnValidSubmit="@SendTestMessage">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <!-- To Address Input -->
+    <div class="mb-3">
+        <label for="toAddress">To Address</label>
+        <InputText id="toAddress" @bind-Value="@MessageRequestModel.ToAddress" class="form-control" required />
+        <span class="text-muted">E.g. +13175555555 for SMS, 13175555555 for WhatsApp</span>
+    </div>
+
+  
+
+    <!-- Send Button -->
+    <button type="submit" class="btn btn-primary">Send Test Message</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(ResponseMessage))
+{
+    <div class="alert alert-info mt-3">@ResponseMessage</div>
+}
+
+@code {
+    private int? SelectedValue { get; set; } = 0;
+    private TokenRequestModel TokenRequestModel { get; set; } = new TokenRequestModel{
+        ClientId="01e08472-0254-43aa-867d-72c0c50a5e9b",
+        ClientSecret="AeUkTXMwwk4Y_b5gBWGLj3BSGnppUowiQFQZUYOGHYk"
+    };
+
+    private List<VMData> Libraries = new();
+    private List<ResponseData> Responses = new();
+    private string _selectedLibraryId = "";
+    private string SelectedResponseId = "";
+
+    protected string SelectedLibraryId
+    {
+        get => _selectedLibraryId;
+        set
+        {
+            if (_selectedLibraryId != value)
+            {
+                _selectedLibraryId = value;
+                FetchResponses(SelectedLibraryId);
+            }
+        }
+    }
+
+    private string SelectedMessengerType { get; set; } = "whatsapp"; // Default value
+
+
+    public async Task GetToken()
+    {
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/token", TokenRequestModel );
+
+            if (response.IsSuccessStatusCode)
+            {
+                Token = await response.Content.ReadAsStringAsync();
+                TokenStorage.Token=Token;
+                ErrorMessage = null;
+                FetchWhatsAppIntegrations();
+                FetchResponseLibraries();
+            }
+            else
+            {
+                ErrorMessage = "Error retrieving token.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Exception: {ex.Message}";
+        }
+    }
+
+
+
+
+
+    private List<whatsAppData> Integrations = new();
+    private string SelectedIntegrationId = "";
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await FetchWhatsAppIntegrations();
+    // }
+
+    public async Task FetchWhatsAppIntegrations()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/data/integrationswhatsapp");
+
+            if (response.IsSuccessStatusCode)
+            {
+                Integrations = await response.Content.ReadFromJsonAsync<List<whatsAppData>>() ?? new List<whatsAppData>();
+
+                if (Integrations.Count > 0)
+                {
+                    SelectedIntegrationId = Integrations.First().Id; // Default selection
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                Console.WriteLine($"❌ Error {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Exception: {ex.Message}");
+        }
+    }
+
+    public async Task FetchResponseLibraries()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/data/libraries");
+
+            if (response.IsSuccessStatusCode)
+            {
+                Libraries = await response.Content.ReadFromJsonAsync<List<VMData>>() ?? new List<VMData>();
+
+                if (Libraries.Count > 0)
+                {
+                    SelectedLibraryId = Libraries.First().Id; // Default selection
+                    await FetchResponses(SelectedLibraryId);
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                Console.WriteLine($"❌ Error {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Exception: {ex.Message}");
+        }
+    }
+
+
+
+    private async Task FetchResponses(string libraryId)
+    {
+        try
+        {
+            var response = await Http.GetAsync($"api/data/responses?libraryId={libraryId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                Responses = await response.Content.ReadFromJsonAsync<List<ResponseData>>() ?? new List<ResponseData>();
+
+                if (Responses.Count > 0)
+                {
+                    SelectedResponseId = Responses.First().Id; // Default selection
+                }
+                StateHasChanged();
+
+            }
+            else
+            {
+                Console.WriteLine($"❌ Error {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Exception: {ex.Message}");
+        }
+    }
+
+    private MessageRequestModel MessageRequestModel { get; set; } = new();
+    private string ResponseMessage = "";
+
+    private async Task SendTestMessage()
+    {
+        try
+        {
+            MessageRequestModel.ToAddressMessengerType = SelectedMessengerType;
+            MessageRequestModel.fromAddress = SelectedIntegrationId;
+            MessageRequestModel.responseId = SelectedResponseId;
+
+
+            var response = await Http.PostAsJsonAsync("api/messaging/send-test", MessageRequestModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                ResponseMessage = $"✅ {await response.Content.ReadAsStringAsync()}";
+            }
+            else
+            {
+                ResponseMessage = $"❌ Error: {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ResponseMessage = $"❌ Exception: {ex.Message}";
+        }
+    }
+
+    
+
+  
+}
+
