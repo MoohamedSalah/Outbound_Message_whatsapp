@@ -11,7 +11,7 @@ namespace Outbound_Message_whatsapp.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
-            //Database.EnsureCreated();
+            Database.EnsureCreated();
         }
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
