@@ -1,15 +1,17 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Outbound_Message_whatsapp.Controllers;
+using Outbound_Message_whatsapp.Controllers.API;
 using Outbound_Message_whatsapp.Data;
-using Outbound_Message_whatsapp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+{
+    options.UseNpgsql(connectionString);
+});
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -22,7 +24,6 @@ builder.Services.AddServerSideBlazor()
     .AddCircuitOptions(options => { options.DetailedErrors = true; });
 // Blazor Server support
 builder.Services.AddHttpClient();
-builder.Services.Configure<TokenRequestModel>(builder.Configuration.GetSection("TokenRequest"));
 
 var baseUrl = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl");
 

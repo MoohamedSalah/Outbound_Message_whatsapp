@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
-namespace Outbound_Message_whatsapp.Controllers
+namespace Outbound_Message_whatsapp.Controllers.API
 {
     [ApiController]
     [Route("api/Data")]
@@ -31,8 +31,8 @@ namespace Outbound_Message_whatsapp.Controllers
             }
 
             var request = new HttpRequestMessage(HttpMethod.Get, "https://api.mec1.pure.cloud/api/v2/conversations/messaging/integrations/whatsapp");
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TokenStorage.Token);
-            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", TokenStorage.Token);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
@@ -83,7 +83,7 @@ namespace Outbound_Message_whatsapp.Controllers
             {
                 return StatusCode(500, $"❌ HTTP Request Exception: {ex.Message}");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"❌ Unexpected Error: {ex.Message}");
             }

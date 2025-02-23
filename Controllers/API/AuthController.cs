@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 
-namespace Outbound_Message_whatsapp.Controllers
+namespace Outbound_Message_whatsapp.Controllers.API
 {
     [ApiController]
     [Route("api/auth")]
