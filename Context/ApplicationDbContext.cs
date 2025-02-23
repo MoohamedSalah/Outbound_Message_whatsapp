@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Outbound_Message_whatsapp.Models;
 using System.Numerics;
-using static Outbound_Message_whatsapp.Data.ApplicationDbContext;
+using static Outbound_Message_whatsapp.Context.ApplicationDbContext;
 
-namespace Outbound_Message_whatsapp.Data
+namespace Outbound_Message_whatsapp.Context
 {
     public partial class ApplicationDbContext : IdentityDbContext
     {

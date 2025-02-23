@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Outbound_Message_whatsapp.Data
+namespace Outbound_Message_whatsapp.Models
 {
-    public partial class ApplicationDbContext
-    {
-        // Define the entities
+     // Define the entities
         public class AppUser
         {
             [Key]
@@ -21,7 +19,7 @@ namespace Outbound_Message_whatsapp.Data
             public ICollection<Invoice> Invoices { get; set; }
         }
 
-    }
+    
 
 
 }

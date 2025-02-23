@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Outbound_Message_whatsapp.Data
+namespace Outbound_Message_whatsapp.Models
 {
-    public partial class ApplicationDbContext
-    {
+   
         public class Payment
         {
             [Key]
@@ -18,7 +17,7 @@ namespace Outbound_Message_whatsapp.Data
             public string PaymentMethod { get; set; }
         }
 
-    }
+    
 
 
 }
